@@ -162,13 +162,13 @@ abstract class AbstractEventPublisher implements EventPublisher {
         return response;
     }
 
-    abstract CaseData mapEnvelopeToCaseDataObject(Envelope envelope);
+    abstract CaseData buildCaseData(Envelope envelope, StartEventResponse eventResponse);
 
     CaseDataContent buildCaseDataContent(
         StartEventResponse eventResponse,
         Envelope envelope
     ) {
-        CaseData caseDataObject = mapEnvelopeToCaseDataObject(envelope);
+        CaseData caseDataObject = buildCaseData(envelope, eventResponse);
         return CaseDataContent.builder()
             .eventToken(eventResponse.getToken())
             .event(Event.builder()

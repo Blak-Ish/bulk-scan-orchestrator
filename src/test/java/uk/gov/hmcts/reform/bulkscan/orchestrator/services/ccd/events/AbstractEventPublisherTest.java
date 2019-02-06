@@ -37,7 +37,7 @@ public class AbstractEventPublisherTest {
     private EventPublisher eventPublisher = new AbstractEventPublisher() {
 
         @Override
-        CaseData mapEnvelopeToCaseDataObject(Envelope envelope) {
+        CaseData buildCaseData(Envelope envelope) {
             return null;
         }
 
