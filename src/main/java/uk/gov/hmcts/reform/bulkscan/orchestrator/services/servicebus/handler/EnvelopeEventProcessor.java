@@ -57,7 +57,8 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         try {
             MessageProcessingResult result = parseEnvelope(message)
                 .andThenWithEnvelope(this::publishEnvelope, message)
-                .andThenWithEnvelope(this::notifyProcessedEnvelope, message);
+                .andThenWithEnvelope(this::notifyProcessedEnvelope, message)
+                .andThen(this::logProcessFinish, message.getMessageId());
 
             tryFinaliseProcessedMessage(message, result);
 
@@ -104,8 +105,8 @@ public class EnvelopeEventProcessor implements IMessageHandler {
     private MessageProcessingResult notifyProcessedEnvelope(IMessage message, Envelope envelope) {
         try {
             processedEnvelopeNotifier.notify(envelope.id);
-            log.info("Processed message with ID {}. File name: {}", message.getMessageId(), envelope.zipFileName);
-            return MessageProcessingResult.success();
+
+            return MessageProcessingResult.success(envelope);
         } catch (NotificationSendingException ex) {
             logMessageProcessingError(message, envelope, ex);
 
@@ -113,6 +114,14 @@ public class EnvelopeEventProcessor implements IMessageHandler {
             // not repeat them, at least until CCD operations become idempotent
             return MessageProcessingResult.unrecoverable(ex);
         }
+    }
+
+    private MessageProcessingResult logProcessFinish(String messageId, MessageProcessingResult result) {
+        if (result.isSuccess()) {
+            log.info("Processed message with ID {}. File name: {}", messageId, result.envelope.zipFileName);
+        }
+
+        return result;
     }
 
     private void tryFinaliseProcessedMessage(IMessage message, MessageProcessingResult processingResult) {

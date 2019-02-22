@@ -13,7 +13,7 @@ public class MessageProcessingResult {
 
     final MessageProcessingResultType resultType;
 
-    private final Envelope envelope;
+    final Envelope envelope;
 
     public final Exception exception;
 
@@ -51,7 +51,7 @@ public class MessageProcessingResult {
         return new MessageProcessingResult(UNRECOVERABLE_FAILURE, exception);
     }
 
-    private boolean isSuccess() {
+    boolean isSuccess() {
         return MessageProcessingResultType.SUCCESS.equals(resultType);
     }
 
