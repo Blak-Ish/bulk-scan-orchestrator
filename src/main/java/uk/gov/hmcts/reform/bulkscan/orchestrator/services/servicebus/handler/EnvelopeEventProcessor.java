@@ -98,7 +98,7 @@ public class EnvelopeEventProcessor implements IMessageHandler {
             return MessageProcessingResult.success(envelope);
         } catch (Exception ex) {
             logMessageProcessingError(message, envelope, ex);
-            return MessageProcessingResult.recoverable(ex);
+            return MessageProcessingResult.recoverable(envelope, ex);
         }
     }
 
@@ -112,12 +112,12 @@ public class EnvelopeEventProcessor implements IMessageHandler {
 
             // CCD changes have been made, so it's better to dead-letter the message and
             // not repeat them, at least until CCD operations become idempotent
-            return MessageProcessingResult.unrecoverable(ex);
+            return MessageProcessingResult.unrecoverable(envelope, ex);
         }
     }
 
     private MessageProcessingResult logProcessFinish(String messageId, MessageProcessingResult result) {
-        if (result.isSuccess()) {
+        if (result.envelope != null) {
             log.info("Processed message with ID {}. File name: {}", messageId, result.envelope.zipFileName);
         }
 

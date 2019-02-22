@@ -14,7 +14,7 @@ public class MessageProcessingResultTest {
     @Test
     public void should_return_second_object_when_first_was_successful() {
         // given
-        MessageProcessingResult successResult = MessageProcessingResult.success();
+        MessageProcessingResult successResult = MessageProcessingResult.success(null);
         MessageProcessingResult recoverableResult = MessageProcessingResult.recoverable(new RuntimeException("oh no"));
 
         // when
@@ -42,7 +42,7 @@ public class MessageProcessingResultTest {
 
         @Override
         public MessageProcessingResult get() {
-            return MessageProcessingResult.success();
+            return MessageProcessingResult.success(null);
         }
     }
 }

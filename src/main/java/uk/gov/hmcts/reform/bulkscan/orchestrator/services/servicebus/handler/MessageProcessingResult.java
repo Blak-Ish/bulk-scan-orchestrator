@@ -17,10 +17,6 @@ public class MessageProcessingResult {
 
     public final Exception exception;
 
-    private MessageProcessingResult(MessageProcessingResultType resultType) {
-        this(resultType, null, null);
-    }
-
     private MessageProcessingResult(MessageProcessingResultType resultType, Envelope envelope) {
         this(resultType, envelope, null);
     }
@@ -35,10 +31,6 @@ public class MessageProcessingResult {
         this.exception = exception;
     }
 
-    static MessageProcessingResult success() {
-        return new MessageProcessingResult(SUCCESS);
-    }
-
     static MessageProcessingResult success(Envelope envelope) {
         return new MessageProcessingResult(SUCCESS, envelope);
     }
@@ -47,8 +39,16 @@ public class MessageProcessingResult {
         return new MessageProcessingResult(POTENTIALLY_RECOVERABLE_FAILURE, exception);
     }
 
+    static MessageProcessingResult recoverable(Envelope envelope, Exception exception) {
+        return new MessageProcessingResult(POTENTIALLY_RECOVERABLE_FAILURE, envelope, exception);
+    }
+
     static MessageProcessingResult unrecoverable(Exception exception) {
         return new MessageProcessingResult(UNRECOVERABLE_FAILURE, exception);
+    }
+
+    static MessageProcessingResult unrecoverable(Envelope envelope, Exception exception) {
+        return new MessageProcessingResult(UNRECOVERABLE_FAILURE, envelope, exception);
     }
 
     boolean isSuccess() {
