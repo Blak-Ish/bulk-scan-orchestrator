@@ -9,6 +9,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.reform.bulkscan.orchestrator.services.ccd.CaseRetriever;
 import uk.gov.hmcts.reform.bulkscan.orchestrator.services.ccd.events.EventPublisher;
 import uk.gov.hmcts.reform.bulkscan.orchestrator.services.ccd.events.EventPublisherContainer;
+import uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.EnvelopeProcessorFinaliser;
 import uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.MessageOperations;
 import uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.NotificationSendingException;
 import uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.ProcessedEnvelopeNotifier;
@@ -61,7 +62,7 @@ public class EnvelopeEventProcessorTest {
             mock(CaseRetriever.class),
             eventPublisherContainer,
             processedEnvelopeNotifier,
-            messageOperations
+            new EnvelopeProcessorFinaliser(messageOperations)
         );
 
         when(eventPublisherContainer.getPublisher(any(Classification.class), any()))
