@@ -57,7 +57,7 @@ public class MessageProcessingResult {
         return new MessageProcessingResult(UNRECOVERABLE_FAILURE, envelope, exception);
     }
 
-    boolean isSuccess() {
+    private boolean isSuccess() {
         return MessageProcessingResultType.SUCCESS.equals(resultType);
     }
 
