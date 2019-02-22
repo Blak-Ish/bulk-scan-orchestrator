@@ -71,9 +71,7 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         Envelope envelope = null;
 
         try {
-            envelope = parse(message.getBody());
-
-            logMessageParsed(message, envelope);
+            envelope = parse(message.getMessageId(), message.getBody());
 
             EventPublisher eventPublisher = eventPublisherContainer.getPublisher(
                 envelope.classification,
@@ -166,18 +164,6 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         return () -> Strings.isNullOrEmpty(envelope.caseRef)
             ? null
             : caseRetriever.retrieve(envelope.jurisdiction, envelope.caseRef);
-    }
-
-    private void logMessageParsed(IMessage message, Envelope envelope) {
-        log.info(
-            "Parsed message. ID: {}, Envelope ID: {}, File name: {}, Jurisdiction: {}, Classification: {}, Case: {}",
-            message.getMessageId(),
-            envelope.id,
-            envelope.zipFileName,
-            envelope.jurisdiction,
-            envelope.classification,
-            envelope.caseRef
-        );
     }
 
     private void logMessageProcessingError(IMessage message, Envelope envelope, Exception exception) {

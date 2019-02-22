@@ -26,7 +26,7 @@ public class OcrDataOrderTest {
         byte[] envelopeMessage = SampleData.exampleJsonAsBytes();
 
         // when
-        Envelope envelope = EnvelopeParser.parse(envelopeMessage);
+        Envelope envelope = EnvelopeParser.parse("message id", envelopeMessage);
         assertThat(envelope.ocrData).isInstanceOf(ArrayList.class);
 
         // and

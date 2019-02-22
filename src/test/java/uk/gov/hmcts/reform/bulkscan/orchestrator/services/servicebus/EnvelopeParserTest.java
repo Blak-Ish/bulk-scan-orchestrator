@@ -24,6 +24,8 @@ import static uk.gov.hmcts.reform.bulkscan.orchestrator.DatetimeHelper.toIso8601
 
 public class EnvelopeParserTest {
 
+    private static final String MESSAGE_ID = "message-id";
+
     private Envelope envelope;
     private Instant scannedAt = Instant.now();
 
@@ -85,7 +87,7 @@ public class EnvelopeParserTest {
                 .toString();
 
         // when
-        Envelope result = EnvelopeParser.parse(json.getBytes());
+        Envelope result = EnvelopeParser.parse(MESSAGE_ID, json.getBytes());
 
         // then
         assertThat(result).isEqualToComparingFieldByFieldRecursively(envelope);
@@ -142,7 +144,7 @@ public class EnvelopeParserTest {
                 .toString();
 
         // when
-        Envelope result = EnvelopeParser.parse(json.getBytes());
+        Envelope result = EnvelopeParser.parse(MESSAGE_ID, json.getBytes());
 
         // then
         assertThat(result).isEqualToComparingFieldByFieldRecursively(envelope);
@@ -156,7 +158,7 @@ public class EnvelopeParserTest {
                 .toString();
 
         // when
-        Throwable exc = catchThrowable(() -> EnvelopeParser.parse(json.getBytes()));
+        Throwable exc = catchThrowable(() -> EnvelopeParser.parse(MESSAGE_ID, json.getBytes()));
 
         // then
         assertThat(exc).isInstanceOf(InvalidMessageException.class);
@@ -168,7 +170,7 @@ public class EnvelopeParserTest {
         String json = "gibberish";
 
         // when
-        Throwable exc = catchThrowable(() -> EnvelopeParser.parse(json.getBytes()));
+        Throwable exc = catchThrowable(() -> EnvelopeParser.parse(MESSAGE_ID, json.getBytes()));
 
         // then
         assertThat(exc).isInstanceOf(InvalidMessageException.class);
@@ -184,7 +186,7 @@ public class EnvelopeParserTest {
                 .toString();
 
         // when
-        Throwable exc = catchThrowable(() -> EnvelopeParser.parse(jsonEnvelopeWithoutId.getBytes()));
+        Throwable exc = catchThrowable(() -> EnvelopeParser.parse(MESSAGE_ID, jsonEnvelopeWithoutId.getBytes()));
 
         // then
         assertThat(exc).isInstanceOf(InvalidMessageException.class);
@@ -196,7 +198,7 @@ public class EnvelopeParserTest {
         byte[] bytes = SampleData.exampleJsonAsBytes();
 
         // when
-        Envelope anEnvelope = EnvelopeParser.parse(bytes);
+        Envelope anEnvelope = EnvelopeParser.parse(MESSAGE_ID, bytes);
 
         // then
         assertThat(anEnvelope.jurisdiction).isEqualTo("BULKSCAN");
@@ -209,7 +211,7 @@ public class EnvelopeParserTest {
         byte[] json = SampleData.envelopeJson();
 
         // when
-        Envelope anEnvelope = EnvelopeParser.parse(json);
+        Envelope anEnvelope = EnvelopeParser.parse(MESSAGE_ID, json);
 
         // then
         assertThat(anEnvelope.jurisdiction).isEqualTo("BULKSCAN");
