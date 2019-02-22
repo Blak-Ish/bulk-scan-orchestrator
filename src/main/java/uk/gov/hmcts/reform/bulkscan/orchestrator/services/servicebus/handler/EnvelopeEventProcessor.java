@@ -56,8 +56,8 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
         try {
             MessageProcessingResult result = parseEnvelope(message)
-                .andThenWithEnvelope(this::publishEnvelope, message)
-                .andThenWithEnvelope(this::notifyProcessedEnvelope, message)
+                .andThenWithEnvelope(this::publishEnvelope)
+                .andThenWithEnvelope(this::notifyProcessedEnvelope)
                 .logProcessFinish(message.getMessageId());
 
             tryFinaliseProcessedMessage(message, result);
@@ -83,7 +83,7 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         }
     }
 
-    private MessageProcessingResult publishEnvelope(IMessage message, Envelope envelope) {
+    private MessageProcessingResult publishEnvelope(Envelope envelope) {
         try {
             EventPublisher eventPublisher = eventPublisherContainer.getPublisher(
                 envelope.classification,
@@ -98,7 +98,7 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         }
     }
 
-    private MessageProcessingResult notifyProcessedEnvelope(IMessage message, Envelope envelope) {
+    private MessageProcessingResult notifyProcessedEnvelope(Envelope envelope) {
         try {
             processedEnvelopeNotifier.notify(envelope.id);
 

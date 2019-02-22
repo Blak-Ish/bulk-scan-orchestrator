@@ -6,7 +6,7 @@ import uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.exceptions.
 import uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.exceptions.MessageProcessingException;
 import uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.model.Envelope;
 
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.handler.MessageProcessingResultType.POTENTIALLY_RECOVERABLE_FAILURE;
@@ -65,11 +65,8 @@ public class MessageProcessingResult {
         return isSuccess() ? function.get() : this;
     }
 
-    <T> MessageProcessingResult andThenWithEnvelope(
-        BiFunction<T, Envelope, MessageProcessingResult> function,
-        T argument
-    ) {
-        return andThen(() -> function.apply(argument, envelope));
+    MessageProcessingResult andThenWithEnvelope(Function<Envelope, MessageProcessingResult> function) {
+        return andThen(() -> function.apply(envelope));
     }
 
     MessageProcessingResult logProcessFinish(String messageId) {
