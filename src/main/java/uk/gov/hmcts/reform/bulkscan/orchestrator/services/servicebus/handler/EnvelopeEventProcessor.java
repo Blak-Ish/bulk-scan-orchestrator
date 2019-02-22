@@ -23,9 +23,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 import static uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.EnvelopeParser.parse;
-import static uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.handler.MessageProcessingResultType.POTENTIALLY_RECOVERABLE_FAILURE;
-import static uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.handler.MessageProcessingResultType.SUCCESS;
-import static uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.handler.MessageProcessingResultType.UNRECOVERABLE_FAILURE;
 
 @Service
 public class EnvelopeEventProcessor implements IMessageHandler {
@@ -86,19 +83,19 @@ public class EnvelopeEventProcessor implements IMessageHandler {
             eventPublisher.publish(envelope);
             processedEnvelopeNotifier.notify(envelope.id);
             log.info("Processed message with ID {}. File name: {}", message.getMessageId(), envelope.zipFileName);
-            return new MessageProcessingResult(SUCCESS);
+            return MessageProcessingResult.success();
         } catch (InvalidMessageException ex) {
             log.error("Rejected message with ID {}, because it's invalid", message.getMessageId(), ex);
-            return new MessageProcessingResult(UNRECOVERABLE_FAILURE, ex);
+            return MessageProcessingResult.unrecoverable(ex);
         } catch (NotificationSendingException ex) {
             logMessageProcessingError(message, envelope, ex);
 
             // CCD changes have been made, so it's better to dead-letter the message and
             // not repeat them, at least until CCD operations become idempotent
-            return new MessageProcessingResult(UNRECOVERABLE_FAILURE, ex);
+            return MessageProcessingResult.unrecoverable(ex);
         } catch (Exception ex) {
             logMessageProcessingError(message, envelope, ex);
-            return new MessageProcessingResult(POTENTIALLY_RECOVERABLE_FAILURE);
+            return MessageProcessingResult.recoverable(ex);
         }
     }
 

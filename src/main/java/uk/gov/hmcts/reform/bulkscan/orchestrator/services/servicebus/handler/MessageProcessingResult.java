@@ -12,11 +12,11 @@ public class MessageProcessingResult {
 
     public final Exception exception;
 
-    MessageProcessingResult(MessageProcessingResultType resultType) {
+    private MessageProcessingResult(MessageProcessingResultType resultType) {
         this(resultType, null);
     }
 
-    MessageProcessingResult(MessageProcessingResultType resultType, Exception exception) {
+    private MessageProcessingResult(MessageProcessingResultType resultType, Exception exception) {
         this.resultType = resultType;
         this.exception = exception;
     }
