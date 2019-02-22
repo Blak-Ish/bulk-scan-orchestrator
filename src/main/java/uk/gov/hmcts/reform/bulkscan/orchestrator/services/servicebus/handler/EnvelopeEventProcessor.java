@@ -84,6 +84,22 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         }
     }
 
+    private MessageProcessingResult publishEnvelope(IMessage message, Envelope envelope) {
+        try {
+            EventPublisher eventPublisher = eventPublisherContainer.getPublisher(
+                envelope.classification,
+                getCaseRetriever(envelope)
+            );
+
+            eventPublisher.publish(envelope);
+
+            return MessageProcessingResult.success(envelope);
+        } catch (Exception ex) {
+            logMessageProcessingError(message, envelope, ex);
+            return MessageProcessingResult.recoverable(ex);
+        }
+    }
+
     private MessageProcessingResult process(IMessage message, Envelope envelope) {
         try {
             EventPublisher eventPublisher = eventPublisherContainer.getPublisher(
