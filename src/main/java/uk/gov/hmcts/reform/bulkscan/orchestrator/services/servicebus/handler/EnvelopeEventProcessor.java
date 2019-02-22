@@ -65,6 +65,23 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         return completableFuture;
     }
 
+    private MessageProcessingResult parseEnvelope(IMessage message) {
+        String messageId = message.getMessageId();
+
+        log.info("Started processing message with ID {}", messageId);
+
+        try {
+            return MessageProcessingResult.success(parse(messageId, message.getBody()));
+        } catch (InvalidMessageException exception) {
+            log.error("Rejected message with ID {}, because it's invalid", messageId, exception);
+
+            return MessageProcessingResult.unrecoverable(exception);
+        } catch (Exception exception) {
+            logMessageProcessingError(message, null, exception);
+            return MessageProcessingResult.recoverable(exception);
+        }
+    }
+
     private MessageProcessingResult process(IMessage message) {
         log.info("Started processing message with ID {}", message.getMessageId());
 
@@ -82,9 +99,6 @@ public class EnvelopeEventProcessor implements IMessageHandler {
             processedEnvelopeNotifier.notify(envelope.id);
             log.info("Processed message with ID {}. File name: {}", message.getMessageId(), envelope.zipFileName);
             return MessageProcessingResult.success();
-        } catch (InvalidMessageException ex) {
-            log.error("Rejected message with ID {}, because it's invalid", message.getMessageId(), ex);
-            return MessageProcessingResult.unrecoverable(ex);
         } catch (NotificationSendingException ex) {
             logMessageProcessingError(message, envelope, ex);
 
