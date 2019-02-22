@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.handler;
 
 import uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.model.Envelope;
 
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 import static uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.handler.MessageProcessingResultType.POTENTIALLY_RECOVERABLE_FAILURE;
@@ -12,7 +13,7 @@ public class MessageProcessingResult {
 
     final MessageProcessingResultType resultType;
 
-    final Envelope envelope;
+    private final Envelope envelope;
 
     public final Exception exception;
 
@@ -56,5 +57,12 @@ public class MessageProcessingResult {
 
     MessageProcessingResult andThen(Supplier<MessageProcessingResult> function) {
         return isSuccess() ? function.get() : this;
+    }
+
+    <T> MessageProcessingResult andThenWithEnvelope(
+        BiFunction<T, Envelope, MessageProcessingResult> function,
+        T argument
+    ) {
+        return andThen(() -> function.apply(argument, envelope));
     }
 }
