@@ -1,5 +1,9 @@
 package uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.exceptions.InvalidMessageException;
+import uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.exceptions.MessageProcessingException;
 import uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.model.Envelope;
 
 import java.util.function.BiFunction;
@@ -11,9 +15,11 @@ import static uk.gov.hmcts.reform.bulkscan.orchestrator.services.servicebus.hand
 
 public class MessageProcessingResult {
 
+    private static final Logger log = LoggerFactory.getLogger(MessageProcessingResult.class);
+
     final MessageProcessingResultType resultType;
 
-    final Envelope envelope;
+    private final Envelope envelope;
 
     public final Exception exception;
 
@@ -64,5 +70,39 @@ public class MessageProcessingResult {
         T argument
     ) {
         return andThen(() -> function.apply(argument, envelope));
+    }
+
+    MessageProcessingResult logProcessFinish(String messageId) {
+        switch (resultType) {
+            case SUCCESS:
+                if (envelope != null) {
+                    log.info("Processed message with ID {}. File name: {}", messageId, envelope.zipFileName);
+                }
+
+                break;
+            case POTENTIALLY_RECOVERABLE_FAILURE:
+            case UNRECOVERABLE_FAILURE:
+                log.error(getProcessFinishMessage(messageId), exception);
+
+                break;
+            default:
+                throw new MessageProcessingException(
+                    "Unknown message processing result type: " + resultType
+                );
+        }
+
+        return this;
+    }
+
+    private String getProcessFinishMessage(String messageId) {
+        if (exception instanceof InvalidMessageException) {
+            return String.format("Rejected message with ID %s, because it's invalid", messageId);
+        } else {
+            String baseMessage = String.format("Failed to process message with ID %s.", messageId);
+
+            return envelope != null
+                ? baseMessage + String.format(" Envelope ID: %s, File name: %s", envelope.id, envelope.zipFileName)
+                : baseMessage;
+        }
     }
 }

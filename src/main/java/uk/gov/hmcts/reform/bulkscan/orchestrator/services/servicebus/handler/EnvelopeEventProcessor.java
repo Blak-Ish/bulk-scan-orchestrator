@@ -58,7 +58,7 @@ public class EnvelopeEventProcessor implements IMessageHandler {
             MessageProcessingResult result = parseEnvelope(message)
                 .andThenWithEnvelope(this::publishEnvelope, message)
                 .andThenWithEnvelope(this::notifyProcessedEnvelope, message)
-                .andThen(this::logProcessFinish, message.getMessageId());
+                .logProcessFinish(message.getMessageId());
 
             tryFinaliseProcessedMessage(message, result);
 
@@ -77,11 +77,8 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         try {
             return MessageProcessingResult.success(parse(messageId, message.getBody()));
         } catch (InvalidMessageException exception) {
-            log.error("Rejected message with ID {}, because it's invalid", messageId, exception);
-
             return MessageProcessingResult.unrecoverable(exception);
         } catch (Exception exception) {
-            logMessageProcessingError(message, null, exception);
             return MessageProcessingResult.recoverable(exception);
         }
     }
@@ -97,7 +94,6 @@ public class EnvelopeEventProcessor implements IMessageHandler {
 
             return MessageProcessingResult.success(envelope);
         } catch (Exception ex) {
-            logMessageProcessingError(message, envelope, ex);
             return MessageProcessingResult.recoverable(envelope, ex);
         }
     }
@@ -108,20 +104,10 @@ public class EnvelopeEventProcessor implements IMessageHandler {
 
             return MessageProcessingResult.success(envelope);
         } catch (NotificationSendingException ex) {
-            logMessageProcessingError(message, envelope, ex);
-
             // CCD changes have been made, so it's better to dead-letter the message and
             // not repeat them, at least until CCD operations become idempotent
             return MessageProcessingResult.unrecoverable(envelope, ex);
         }
-    }
-
-    private MessageProcessingResult logProcessFinish(String messageId, MessageProcessingResult result) {
-        if (result.envelope != null) {
-            log.info("Processed message with ID {}. File name: {}", messageId, result.envelope.zipFileName);
-        }
-
-        return result;
     }
 
     private void tryFinaliseProcessedMessage(IMessage message, MessageProcessingResult processingResult) {
@@ -191,15 +177,5 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         return () -> Strings.isNullOrEmpty(envelope.caseRef)
             ? null
             : caseRetriever.retrieve(envelope.jurisdiction, envelope.caseRef);
-    }
-
-    private void logMessageProcessingError(IMessage message, Envelope envelope, Exception exception) {
-        String baseMessage = String.format("Failed to process message with ID %s.", message.getMessageId());
-
-        String fullMessage = envelope != null
-            ? baseMessage + String.format(" Envelope ID: %s, File name: %s", envelope.id, envelope.zipFileName)
-            : baseMessage;
-
-        log.error(fullMessage, exception);
     }
 }
