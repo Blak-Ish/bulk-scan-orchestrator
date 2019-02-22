@@ -56,6 +56,7 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
         try {
             MessageProcessingResult result = parseEnvelope(message)
+                .andThenWithEnvelope(this::publishEnvelope, message)
                 .andThenWithEnvelope(this::process, message);
 
             tryFinaliseProcessedMessage(message, result);
@@ -102,12 +103,6 @@ public class EnvelopeEventProcessor implements IMessageHandler {
 
     private MessageProcessingResult process(IMessage message, Envelope envelope) {
         try {
-            EventPublisher eventPublisher = eventPublisherContainer.getPublisher(
-                envelope.classification,
-                getCaseRetriever(envelope)
-            );
-
-            eventPublisher.publish(envelope);
             processedEnvelopeNotifier.notify(envelope.id);
             log.info("Processed message with ID {}. File name: {}", message.getMessageId(), envelope.zipFileName);
             return MessageProcessingResult.success();
@@ -117,9 +112,6 @@ public class EnvelopeEventProcessor implements IMessageHandler {
             // CCD changes have been made, so it's better to dead-letter the message and
             // not repeat them, at least until CCD operations become idempotent
             return MessageProcessingResult.unrecoverable(ex);
-        } catch (Exception ex) {
-            logMessageProcessingError(message, envelope, ex);
-            return MessageProcessingResult.recoverable(ex);
         }
     }
 
