@@ -57,7 +57,7 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         try {
             MessageProcessingResult result = parseEnvelope(message)
                 .andThenWithEnvelope(this::publishEnvelope, message)
-                .andThenWithEnvelope(this::process, message);
+                .andThenWithEnvelope(this::notifyProcessedEnvelope, message);
 
             tryFinaliseProcessedMessage(message, result);
 
@@ -101,7 +101,7 @@ public class EnvelopeEventProcessor implements IMessageHandler {
         }
     }
 
-    private MessageProcessingResult process(IMessage message, Envelope envelope) {
+    private MessageProcessingResult notifyProcessedEnvelope(IMessage message, Envelope envelope) {
         try {
             processedEnvelopeNotifier.notify(envelope.id);
             log.info("Processed message with ID {}. File name: {}", message.getMessageId(), envelope.zipFileName);
